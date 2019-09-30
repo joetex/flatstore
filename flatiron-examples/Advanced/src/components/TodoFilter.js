@@ -3,9 +3,6 @@ import { todoShowAll, todoShowCompleted, todoShowNotCompleted } from '../service
 
 class TodoFilter extends React.Component {
 
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         return (

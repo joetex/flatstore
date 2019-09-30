@@ -4,9 +4,6 @@ import { todoToggleComplete } from '../services/todo';
 
 class TodoResult extends React.Component {
 
-    constructor(props) {
-        super(props);
-    }
 
     render() {
         return (
@@ -32,4 +29,4 @@ let onCustomProps = (key, value, store, ownProps) => {
     }
 }
 
-export default flatiron.connect(['todosMap'], onCustomWatched, onCustomProps)(TodoResult);
+export default flatiron.connect([], onCustomWatched, onCustomProps)(TodoResult);

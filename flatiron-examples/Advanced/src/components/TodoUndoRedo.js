@@ -3,9 +3,6 @@ import { todoUndo, todoRedo } from '../services/todo';
 
 class TodoUndoRedo extends React.Component {
 
-    constructor(props) {
-        super(props);
-    }
 
     undo() {
         todoUndo();

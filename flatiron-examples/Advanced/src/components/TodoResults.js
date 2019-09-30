@@ -9,10 +9,11 @@ class TodoResults extends React.Component {
 
         let results = [];
 
-        for (let i in todosSorted) {
+        for (let i=0; i<todosSorted.length; i++) {
+            let todo = todosSorted[i];
             results.push(
-                <li key={"resultlist-" + i}>
-                    <TodoResult id={todosSorted[i].id} />
+                <li key={"resultlist-" + todo.id}>
+                    <TodoResult id={todo.id} />
                 </li>
             )
         }
@@ -29,10 +30,10 @@ class TodoResults extends React.Component {
 
 function filterTodos(todos, filterType) {
     switch (filterType) {
-        case 1: return todos.filter(todo => todo.completed == true);
-        case 2: return todos.filter(todo => todo.completed == false);
+        case 1: return todos.filter(todo => todo.completed === true);
+        case 2: return todos.filter(todo => todo.completed === false);
+        default: return todos;
     }
-    return todos
 }
 
 
@@ -41,7 +42,7 @@ let onCustomProps = (key, value, state, ownProps) => {
     return {
         todosSorted: filterTodos(state.todosSorted, state.todosFilter)
     }
-    return {};
+    //return {};
 }
 
 export default flatiron.connect(['todosSorted', 'todosFilter'], null, onCustomProps)(TodoResults);

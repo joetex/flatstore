@@ -1,12 +1,11 @@
 import flatiron from 'flatiron';
-import cloneDeep from 'lodash/cloneDeep';
 
-let FILTER_ALL = 0;
-let FILTER_UNCOMPLETED = 1;
-let FILTER_COMPLETED = 2;
+// let FILTER_ALL = 0;
+// let FILTER_UNCOMPLETED = 1;
+// let FILTER_COMPLETED = 2;
 
 var todoIndex = 0;
-var todoFilterType = FILTER_ALL;
+// var todoFilterType = FILTER_ALL;
 
 let defaultTodos = {};
 flatiron.historical('todos');
@@ -32,14 +31,7 @@ export function todoCreate(item) {
 
     flatiron.set("todos-" + todo.id, todo);
 
-    let sorted = [];
-    for (let i in todos) {
-        sorted.push(todos[i]);
-    }
-    sorted = todoSortByDate(sorted);
-    flatiron.set("todosSorted", sorted);
-
-    //flatiron.set("todos", todoSortByDate(todos));
+    todoSort(todos);
 }
 
 export function todoToggleComplete(id) {
@@ -69,16 +61,25 @@ export function todoShowNotCompleted() {
 
 export function todoUndo() {
     flatiron.undo("todos");
-    flatiron.undo("todosSorted");
+    
+    let todos = flatiron.get("todos");
+    todoSort(todos);
 }
 
 export function todoRedo() {
     flatiron.redo("todos");
-    flatiron.redo("todosSorted");
+    
+    let todos = flatiron.get("todos");
+    todoSort(todos);
 }
 
-function todoFinalize(todos) {
-
+export function todoSort(todos) {
+    let sorted = [];
+    for (let i in todos) {
+        sorted.push(todos[i]);
+    }
+    sorted = todoSortByDate(sorted);
+    flatiron.set("todosSorted", sorted);
 }
 
 function todoSortByDate(todos) {
