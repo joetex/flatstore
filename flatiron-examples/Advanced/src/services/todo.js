@@ -17,7 +17,7 @@ flatiron.set("todosFilter", 0);
 
 export function todoCreate(item) {
 
-    let todos = flatiron.copy("todos");
+    let todos = flatiron.get("todos");
 
     if (!todos)
         todos = {};
@@ -31,20 +31,28 @@ export function todoCreate(item) {
     todos[todo.id] = todo;
 
     flatiron.set("todos-" + todo.id, todo);
-    flatiron.set("todos", todoSortByDate(todos));
+
+    let sorted = [];
+    for (let i in todos) {
+        sorted.push(todos[i]);
+    }
+    sorted = todoSortByDate(sorted);
+    flatiron.set("todosSorted", sorted);
+
+    //flatiron.set("todos", todoSortByDate(todos));
 }
 
 export function todoToggleComplete(id) {
 
-    let todos = flatiron.copy("todos");
+    let todos = flatiron.get("todos");
 
-    let todo = todos.find(t => t.id == id);
+    let todo = todos[id];
     if (!todo)
         return;
     todo.completed = !todo.completed;
 
     flatiron.set("todos-" + id, todo);
-    flatiron.set("todos", todos);
+    //flatiron.set("todos", todos);
 }
 
 export function todoShowAll() {
@@ -61,10 +69,12 @@ export function todoShowNotCompleted() {
 
 export function todoUndo() {
     flatiron.undo("todos");
+    flatiron.undo("todosSorted");
 }
 
 export function todoRedo() {
     flatiron.redo("todos");
+    flatiron.redo("todosSorted");
 }
 
 function todoFinalize(todos) {

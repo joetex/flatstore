@@ -12,12 +12,6 @@ var delimiter = "-";
 
 flatiron.get = function (key) {
     let value = _getChild(fiStore, key);
-    if (Array.isArray(value)) {
-        return Object.assign([], value);
-    }
-    if (value instanceof Object) {
-        return Object.assign({}, value);
-    }
     return value;
 }
 
@@ -42,7 +36,7 @@ function _setChild(obj, path, value) {
         obj = obj[path[i]];
 
     obj[path[i]] = value;
-    return path.length;
+    return path[0];
 }
 
 flatiron.copy = function (key) {
@@ -52,10 +46,15 @@ flatiron.copy = function (key) {
 
 flatiron.set = function (key, newValue) {
     let oldValue = fiStore[key];
-    _setChild(fiStore, key, newValue);
-    flatiron._notifyHistory(key, newValue);
-    flatiron._notifyComponents(key, newValue);
-    flatiron._notifySubscribers(key, newValue);
+    let parent = _setChild(fiStore, key, newValue);
+    flatiron._notifyHistory(parent, fiStore[parent]);
+    flatiron._notifyComponents(parent, fiStore[parent]);
+    flatiron._notifySubscribers(parent, fiStore[parent]);
+
+    if (parent !== key) {
+        flatiron._notifyComponents(key, newValue);
+        flatiron._notifySubscribers(key, newValue);
+    }
 }
 
 flatiron._setHistory = function (key, newValue) {
@@ -102,6 +101,14 @@ flatiron.historical = function (key) {
     fiHistoryIndex[key] = 0;
 }
 
+function _arrayEquals(a, b) {
+    if (!a || !b) return false;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+}
+
 flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
     return function (WrappedComponent) {
         return class extends React.Component {
@@ -123,8 +130,14 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
             }
 
             processWatched(isConstructor) {
-                if (this.onCustomWatched)
+                if (this.onCustomWatched) {
+                    let previousWatchedKeys = watchedKeys;
                     watchedKeys = this.onCustomWatched({ ...this.props, ...this.state });
+                    if (!_arrayEquals(previousWatchedKeys, watchedKeys)) {
+                        flatiron._unwatch(this.watched, this);
+                        this.watched = {};
+                    }
+                }
 
                 if (!Array.isArray(watchedKeys))
                     throw new Error("[flatiron.ProcessWatched] ERROR: parameter watchList must return array of strings.");
@@ -152,7 +165,7 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
                 componentState[key] = value;
 
                 if (onCustomProps instanceof Function) {
-                    let customComponentState = onCustomProps(key, Object.assign({}, fiStore), { ...this.props, ...this.state });
+                    let customComponentState = onCustomProps(key, value, Object.assign({}, fiStore), { ...this.props, ...this.state });
                     Object.assign(componentState, customComponentState);
                 }
 
@@ -183,6 +196,7 @@ flatiron._notifyHistory = function (key, value) {
     if (!(key in fiHistory))
         return;
 
+    value = cloneDeep(value);
     let index = fiHistoryIndex[key];
     if (index == fiHistory[key].length - 1)
         fiHistory[key].push(value);

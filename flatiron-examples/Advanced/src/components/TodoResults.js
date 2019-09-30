@@ -5,14 +5,14 @@ import TodoResult from './TodoResult';
 class TodoResults extends React.Component {
     render() {
 
-        let todos = this.props.todos || [];
+        let todosSorted = this.props.todosSorted || [];
 
         let results = [];
 
-        for (let i in todos) {
+        for (let i in todosSorted) {
             results.push(
                 <li key={"resultlist-" + i}>
-                    <TodoResult id={todos[i].id} />
+                    <TodoResult id={todosSorted[i].id} />
                 </li>
             )
         }
@@ -36,12 +36,12 @@ function filterTodos(todos, filterType) {
 }
 
 
-let onCustomProps = (key, state, ownProps) => {
-    if (key === 'todosFilter')
-        return {
-            todos: filterTodos(state.todos, state.todosFilter)
-        }
+let onCustomProps = (key, value, state, ownProps) => {
+    //if (key === 'todosFilter')
+    return {
+        todosSorted: filterTodos(state.todosSorted, state.todosFilter)
+    }
     return {};
 }
 
-export default flatiron.connect(['todos', 'todosFilter'], null, onCustomProps)(TodoResults);
+export default flatiron.connect(['todosSorted', 'todosFilter'], null, onCustomProps)(TodoResults);

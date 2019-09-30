@@ -26,9 +26,9 @@ let onCustomWatched = (ownProps) => {
     return ['todos-' + ownProps.id];
 }
 
-let onCustomProps = (key, store, ownProps) => {
+let onCustomProps = (key, value, store, ownProps) => {
     return {
-        ...store[key]
+        ...value
     }
 }
 
