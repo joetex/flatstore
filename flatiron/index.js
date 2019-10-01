@@ -48,12 +48,16 @@ flatiron.set = function (key, newValue) {
     let oldValue = fiStore[key];
     let parent = _setChild(fiStore, key, newValue);
     flatiron._notifyHistory(parent, fiStore[parent]);
-    flatiron._notifyComponents(parent, fiStore[parent]);
-    flatiron._notifySubscribers(parent, fiStore[parent]);
+
+    //TODO: do parents need to know if a child was updated?
+
 
     if (parent !== key) {
         flatiron._notifyComponents(key, newValue);
         flatiron._notifySubscribers(key, newValue);
+    } else {
+        flatiron._notifyComponents(parent, fiStore[parent]);
+        flatiron._notifySubscribers(parent, fiStore[parent]);
     }
 }
 
@@ -62,11 +66,6 @@ flatiron._setHistory = function (key, newValue) {
     fiStore[key] = newValue;
     flatiron._notifyComponents(key, newValue);
     flatiron._notifySubscribers(key, newValue);
-
-    if (parent !== key) {
-        flatiron._notifyComponents(key, newValue);
-        flatiron._notifySubscribers(key, newValue);
-    }
 }
 
 flatiron.subscribe = function (key, callback) {
@@ -82,30 +81,30 @@ flatiron.subscribe = function (key, callback) {
 
 flatiron.undo = function (key) {
     if (!(key in fiHistory))
-        throw new Error("[flatiron.undo] ERROR: Key '"+key+"' does not have historical state");
+        throw new Error("[flatiron.undo] ERROR: Key '" + key + "' does not have historical state");
 
-    let index = fiHistoryIndex[key] - 1;
+    let index = fiHistoryIndex[key] - 2;
     if (index < 0)
         index = 0;
-    fiHistoryIndex[key] = index;
+    fiHistoryIndex[key] = index + 1;
     flatiron._setHistory(key, fiHistory[key][index]);
     return fiHistory[key][index];
 }
 
 flatiron.redo = function (key) {
     if (!(key in fiHistory))
-        throw new Error("[flatiron.redo] ERROR: Key '"+key+"' does not have historical state");
-    let index = fiHistoryIndex[key] + 1;
+        throw new Error("[flatiron.redo] ERROR: Key '" + key + "' does not have historical state");
+    let index = fiHistoryIndex[key];
     if (index >= fiHistory[key].length)
         index = fiHistory[key].length - 1;
-    fiHistoryIndex[key] = index;
+    fiHistoryIndex[key] = index + 1;
     flatiron._setHistory(key, fiHistory[key][index]);
     return fiHistory[key][index];
 }
 
 flatiron.historical = function (key) {
     fiHistory[key] = [];
-    fiHistoryIndex[key] = -1;
+    fiHistoryIndex[key] = 0;
 }
 
 function _arrayEquals(a, b) {
@@ -147,7 +146,7 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
                 }
 
                 if (!Array.isArray(watchedKeys))
-                    throw new Error("[flatiron.ProcessWatched] ERROR: parameter watchList '"+typeof watchList+"' must return array of strings.");
+                    throw new Error("[flatiron.ProcessWatched] ERROR: parameter watchList '" + typeof watchedKeys + "' must return array of strings.");
 
                 let componentState = {};
 
@@ -179,7 +178,7 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
                 // if (this.onCustomWatched)
                 //     this.processWatched();
 
-                if(!isConstructor)
+                if (!isConstructor)
                     this.setState(componentState);
                 return componentState;
             }
@@ -206,15 +205,18 @@ flatiron._notifyHistory = function (key, value) {
 
     value = cloneDeep(value);
     let index = fiHistoryIndex[key];
-    if (index == fiHistory[key].length - 1)
+    if (index == fiHistory[key].length) {
         fiHistory[key].push(value);
-    else {
-        fiHistory[key] = fiHistory[key].slice(0, index+1);
-        fiHistory[key][index] = value;
+        fiHistoryIndex[key] = fiHistory[key].length;
     }
-        
+    else {
+        fiHistory[key] = fiHistory[key].slice(0, index);
+        fiHistory[key][index + 1] = value;
+        fiHistoryIndex[key] = index + 1;
+    }
 
-    fiHistoryIndex[key]++;
+
+
 }
 flatiron._notifyComponents = function (key, value) {
     if (!(key in fiWatchers))
