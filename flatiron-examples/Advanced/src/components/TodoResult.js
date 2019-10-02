@@ -8,7 +8,6 @@ class TodoResult extends React.Component {
     render() {
         return (
             <div
-                key={"result-" + this.props.id}
                 className={this.props.completed ? "completed" : ""}
                 onClick={() => { todoToggleComplete(this.props.id) }}>
 

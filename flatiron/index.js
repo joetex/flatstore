@@ -4,39 +4,26 @@ import cloneDeep from 'lodash/cloneDeep';
 var flatiron = {};  //main library
 var fiStore = {};   //global store
 var fiWatchers = {};    //component watchers
+var fiWatchersChildren = {}; //component watchers for drill down keys 
 var fiIncrementIndex = 0; //HOC indexing
 var fiSubscribers;  //global subscribers (outside components)
 var fiHistoryIndex = {}; //index of history
 var fiHistory = {}; //history list of copied states
 var delimiter = "-";
 
-flatiron.get = function (key) {
-    let value = _getChild(fiStore, key);
-    return value;
-}
-
-
 flatiron.delimiter = function (d) {
     delimiter = d;
 }
 
-function _getChild(obj, path) {
-    var i;
-    path = path.split(delimiter);
-    for (i = 0; i < path.length - 1; i++)
-        obj = obj[path[i]];
+flatiron.get = function (key) {
+    let value;
+    try {
+        value = _getChild(fiStore, key);
+    }catch(error) {
+        throw new Error("[flatiron.get] ERROR: Key '"+key+"' not valid.");
+    }
 
-    return obj[path[i]];
-}
-
-function _setChild(obj, path, value) {
-    var i;
-    path = path.split(delimiter);
-    for (i = 0; i < path.length - 1; i++)
-        obj = obj[path[i]];
-
-    obj[path[i]] = value;
-    return path[0];
+    return value;
 }
 
 flatiron.copy = function (key) {
@@ -45,28 +32,25 @@ flatiron.copy = function (key) {
 }
 
 flatiron.set = function (key, newValue) {
-    let oldValue = fiStore[key];
-    let parent = _setChild(fiStore, key, newValue);
+    let parent = key;
+    try {
+        parent = _setChild(fiStore, key, newValue);
+    }catch(error) {
+        throw new Error("[flatiron.set] ERROR: Key '"+key+"' not valid.");
+    }
+    
     flatiron._notifyHistory(parent, fiStore[parent]);
-
-    //TODO: do parents need to know if a child was updated?
-
+    flatiron._notifyComponents(parent, fiStore[parent]);
+    flatiron._notifySubscribers(parent, fiStore[parent]);
 
     if (parent !== key) {
         flatiron._notifyComponents(key, newValue);
         flatiron._notifySubscribers(key, newValue);
     } else {
-        flatiron._notifyComponents(parent, fiStore[parent]);
-        flatiron._notifySubscribers(parent, fiStore[parent]);
+        flatiron._notifyChildren(parent);
     }
 }
 
-flatiron._setHistory = function (key, newValue) {
-    let oldValue = fiStore[key];
-    fiStore[key] = newValue;
-    flatiron._notifyComponents(key, newValue);
-    flatiron._notifySubscribers(key, newValue);
-}
 
 flatiron.subscribe = function (key, callback) {
     if (!(callback instanceof Function))
@@ -87,7 +71,7 @@ flatiron.undo = function (key) {
     if (index < 0)
         index = 0;
     fiHistoryIndex[key] = index + 1;
-    flatiron._setHistory(key, fiHistory[key][index]);
+    flatiron._setHistory(key, cloneDeep(fiHistory[key][index]));
     return fiHistory[key][index];
 }
 
@@ -98,7 +82,7 @@ flatiron.redo = function (key) {
     if (index >= fiHistory[key].length)
         index = fiHistory[key].length - 1;
     fiHistoryIndex[key] = index + 1;
-    flatiron._setHistory(key, fiHistory[key][index]);
+    flatiron._setHistory(key, cloneDeep(fiHistory[key][index]));
     return fiHistory[key][index];
 }
 
@@ -190,13 +174,42 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
     }
 }
 
-flatiron._notify = function (key, oldValue, newValue) {
-    if (!key)
-        return;
+function _getChild(obj, path) {
+    var i;
+    path = path.split(delimiter);
+    for (i = 0; i < path.length - 1; i++)
+        obj = obj[path[i]];
 
-    flatiron._notifyHistory(key, newValue);
+    return obj[path[i]];
+}
+
+function _setChild(obj, path, value) {
+    var i;
+    path = path.split(delimiter);
+    for (i = 0; i < path.length - 1; i++)
+        obj = obj[path[i]];
+
+    obj[path[i]] = value;
+    return path[0];
+}
+
+flatiron._setHistory = function (key, newValue) {
+    let oldValue = fiStore[key];
+    let parent = _setChild(fiStore, key, newValue);
+
     flatiron._notifyComponents(key, newValue);
     flatiron._notifySubscribers(key, newValue);
+    flatiron._notifyChildren(parent);
+}
+
+flatiron._notifyChildren = function(key) {
+    if( !Array.isArray(fiStore[key]) && !(fiStore[key] instanceof Object))
+        return;
+    for(var childKey in fiWatchersChildren[key]) {
+        let newValue = flatiron.get(childKey);
+        flatiron._notifyComponents(childKey, newValue);
+        flatiron._notifySubscribers(childKey, newValue);
+    }
 }
 
 flatiron._notifyHistory = function (key, value) {
@@ -211,12 +224,9 @@ flatiron._notifyHistory = function (key, value) {
     }
     else {
         fiHistory[key] = fiHistory[key].slice(0, index);
-        fiHistory[key][index + 1] = value;
+        fiHistory[key][index] = value;
         fiHistoryIndex[key] = index + 1;
     }
-
-
-
 }
 flatiron._notifyComponents = function (key, value) {
     if (!(key in fiWatchers))
@@ -241,6 +251,13 @@ flatiron._watch = function (key, component) {
     if (!fiWatchers[key])
         fiWatchers[key] = {};
     fiWatchers[key][component._flatironid] = component;
+    let delimiterPos = key.indexOf(delimiter);
+    if( delimiterPos > -1 ) {
+        let parentKey = key.substring(0,delimiterPos);
+        if( !fiWatchersChildren[parentKey] )
+            fiWatchersChildren[parentKey] = {};
+        fiWatchersChildren[parentKey][key] = true;
+    }
 }
 
 flatiron._unwatch = function (watched, component) {
