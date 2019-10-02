@@ -12,6 +12,8 @@ flatiron is a global object, used with the concept of Services, to add/update da
 
 ## Simple
 
+[View example source](https://github.com/joetex/flatiron/tree/master/flatiron-examples/Simple)
+
 **flatiron.set** lets you add any data into the global store by key name from anywhere.
 
 **flatiron.connect** lets you specify an array of keys in string format to update component when those keys changed.
@@ -70,6 +72,8 @@ export default flatiron.connect(['ddgQuery', 'ddgResultCount', 'ddgError'])(Sear
 ```
 
 ## Advanced
+
+[View example source](https://github.com/joetex/flatiron/tree/master/flatiron-examples/Advanced)
 
 **onCustomWatched** allows dynamic control on which items to watch (called only once during constructor).
 
