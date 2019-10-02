@@ -77,7 +77,7 @@ export default flatiron.connect(['ddgQuery', 'ddgResultCount', 'ddgError'])(Sear
 
 **flatiron.get** gets a direct reference to the data in store.  Use **flatiron.copy** to make a deep copy instead.
 
-**flatiron.set** supports object and array drill down. i.e. `'todos-a-b-10'` will get `store['todos']['a']['b'][10]`.  The parent `'todos'` and `'todos-a-b-10'` will both notify watchers/subscribers.
+**flatiron.set** supports object and array drill down. i.e. `'todos-a-b-10'` will get `store['todos']['a']['b'][10]`.  Both the parent `'todos'` and `'todos-a-b-10'` will notify watchers/subscribers when using flatiron.set.
 
 ```javascript
 export function todoToggleComplete(id) {
