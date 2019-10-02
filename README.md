@@ -73,7 +73,7 @@ export default flatiron.connect(['ddgQuery', 'ddgResultCount', 'ddgError'])(Sear
 
 **onCustomWatched** allows dynamic control on which items to watch (called only once during constructor).
 
-**onCustomProps** allows mapping the store values or specific key/value that was updated (key/value is always added to props, unless you override key).
+**onCustomProps** allows mapping your own custom component props using key, value, store, or ownProps.
 
 **flatiron.get** gets a direct reference to the data in store.  Use **flatiron.copy** to make a deep copy instead.
 
