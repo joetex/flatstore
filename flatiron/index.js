@@ -74,29 +74,6 @@ flatiron.setWithObj = function(obj){
         }
     }
 }
-flatiron.setWithObj = function(obj){
-    for(let i in obj){
-        const key = i
-        const newValue = obj[i]
-        let parent = key;
-        try {
-            parent = _setChild(fiStore, key, newValue);
-        }catch(error) {
-            throw new Error("[flatiron.set] ERROR: Key '"+key+"' not valid.");
-        }
-        
-        flatiron._notifyHistory(parent, fiStore[parent]);
-        flatiron._notifyComponents(parent, fiStore[parent]);
-        flatiron._notifySubscribers(parent, fiStore[parent]);
-    
-        if (parent !== key) {
-            flatiron._notifyComponents(key, newValue);
-            flatiron._notifySubscribers(key, newValue);
-        } else {
-            flatiron._notifyChildren(parent);
-        }
-    }
-}
 flatiron.subscribe = function (key, callback) {
     if (!(callback instanceof Function))
         throw new Error("[flatiron.subscribe] ERROR: callback must be a function.");
