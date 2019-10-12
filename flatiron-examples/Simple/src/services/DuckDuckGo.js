@@ -41,6 +41,12 @@ export async function SearchDuckDuckGo(query) {
         flatiron.set("ddgResultCount", results.length);
 
         flatiron.set("ddgError", false);
+        //OR
+//         let obj = {"ddg":response.data,
+//         "ddgQuery": query,
+//         "ddgResults": results,
+//         "ddgResultCount": results.length}
+// flatiron.setWithObj(obj)
     }
     catch (error) {
         console.log(error);
