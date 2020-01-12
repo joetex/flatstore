@@ -1,6 +1,6 @@
 # flatstore
 
-Redux alternative, without the bloat and with tighter data to component mapping. Currently a work in progress.
+Redux alternative, Flat storage with tighter data to component mapping. Formally known as flatiron.
 
 # Installation
 
