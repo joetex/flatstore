@@ -1,5 +1,5 @@
 {
-    "name": "flatiron",
+    "name": "flatstore",
     "version": "1.0.0",
     "description": "Global store manager for components",
     "main": "index.js",

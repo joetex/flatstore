@@ -1,7 +1,7 @@
 import React from 'react';
 import cloneDeep from 'lodash/cloneDeep';
 
-var flatiron = {};  //main library
+var flatstore = {};  //main library
 var fiStore = {};   //global store
 var fiWatchers = {};    //component watchers
 var fiWatchersChildren = {}; //component watchers for drill down keys 
@@ -11,72 +11,72 @@ var fiHistoryIndex = {}; //index of history
 var fiHistory = {}; //history list of copied states
 var delimiter = "-";
 
-flatiron.delimiter = function (d) {
+flatstore.delimiter = function (d) {
     delimiter = d;
 }
 
-flatiron.get = function (key) {
+flatstore.get = function (key) {
     let value;
     try {
         value = _getChild(fiStore, key);
-    }catch(error) {
-        throw new Error("[flatiron.get] ERROR: Key '"+key+"' not valid.");
+    } catch (error) {
+        throw new Error("[flatstore.get] ERROR: Key '" + key + "' not valid.");
     }
 
     return value;
 }
 
-flatiron.copy = function (key) {
-    let value = flatiron.get(key);
+flatstore.copy = function (key) {
+    let value = flatstore.get(key);
     return cloneDeep(value);
 }
 
-flatiron.set = function (key, newValue) {
+flatstore.set = function (key, newValue) {
     let parent = key;
     try {
         parent = _setChild(fiStore, key, newValue);
-    }catch(error) {
-        throw new Error("[flatiron.set] ERROR: Key '"+key+"' not valid.");
+    } catch (error) {
+        throw new Error("[flatstore.set] ERROR: Key '" + key + "' not valid.");
     }
-    
-    flatiron._notifyHistory(parent, fiStore[parent]);
-    flatiron._notifyComponents(parent, fiStore[parent]);
-    flatiron._notifySubscribers(parent, fiStore[parent]);
+
+    flatstore._notifyHistory(parent, fiStore[parent]);
+    flatstore._notifyComponents(parent, fiStore[parent]);
+    flatstore._notifySubscribers(parent, fiStore[parent]);
 
     if (parent !== key) {
-        flatiron._notifyComponents(key, newValue);
-        flatiron._notifySubscribers(key, newValue);
+        flatstore._notifyComponents(key, newValue);
+        flatstore._notifySubscribers(key, newValue);
     } else {
-        flatiron._notifyChildren(parent);
+        flatstore._notifyChildren(parent);
     }
 }
 
-flatiron.setWithObj = function(obj){
-    for(let i in obj){
+flatstore.setWithObj = function (obj) {
+    for (let i in obj) {
         const key = i
         const newValue = obj[i]
         let parent = key;
         try {
             parent = _setChild(fiStore, key, newValue);
-        }catch(error) {
-            throw new Error("[flatiron.set] ERROR: Key '"+key+"' not valid.");
+        } catch (error) {
+            throw new Error("[flatstore.set] ERROR: Key '" + key + "' not valid.");
         }
-        
-        flatiron._notifyHistory(parent, fiStore[parent]);
-        flatiron._notifyComponents(parent, fiStore[parent]);
-        flatiron._notifySubscribers(parent, fiStore[parent]);
-    
+
+        flatstore._notifyHistory(parent, fiStore[parent]);
+        flatstore._notifyComponents(parent, fiStore[parent]);
+        flatstore._notifySubscribers(parent, fiStore[parent]);
+
         if (parent !== key) {
-            flatiron._notifyComponents(key, newValue);
-            flatiron._notifySubscribers(key, newValue);
+            flatstore._notifyComponents(key, newValue);
+            flatstore._notifySubscribers(key, newValue);
         } else {
-            flatiron._notifyChildren(parent);
+            flatstore._notifyChildren(parent);
         }
     }
 }
-flatiron.subscribe = function (key, callback) {
+flatstore.subscribe = function (key, callback) {
     if (!(callback instanceof Function))
-        throw new Error("[flatiron.subscribe] ERROR: callback must be a function.");
+        throw new Error("[flatstore.subscribe] ERROR: callback must be a function.");
     if (!fiSubscribers)
         fiSubscribers = {};
 
@@ -85,30 +85,30 @@ flatiron.subscribe = function (key, callback) {
     fiSubscribers[key].push(callback);
 }
 
-flatiron.undo = function (key) {
+flatstore.undo = function (key) {
     if (!(key in fiHistory))
-        throw new Error("[flatiron.undo] ERROR: Key '" + key + "' does not have historical state");
+        throw new Error("[flatstore.undo] ERROR: Key '" + key + "' does not have historical state");
 
     let index = fiHistoryIndex[key] - 2;
     if (index < 0)
         index = 0;
     fiHistoryIndex[key] = index + 1;
-    flatiron._setHistory(key, cloneDeep(fiHistory[key][index]));
+    flatstore._setHistory(key, cloneDeep(fiHistory[key][index]));
     return fiHistory[key][index];
 }
 
-flatiron.redo = function (key) {
+flatstore.redo = function (key) {
     if (!(key in fiHistory))
-        throw new Error("[flatiron.redo] ERROR: Key '" + key + "' does not have historical state");
+        throw new Error("[flatstore.redo] ERROR: Key '" + key + "' does not have historical state");
     let index = fiHistoryIndex[key];
     if (index >= fiHistory[key].length)
         index = fiHistory[key].length - 1;
     fiHistoryIndex[key] = index + 1;
-    flatiron._setHistory(key, cloneDeep(fiHistory[key][index]));
+    flatstore._setHistory(key, cloneDeep(fiHistory[key][index]));
     return fiHistory[key][index];
 }
 
-flatiron.historical = function (key) {
+flatstore.historical = function (key) {
     fiHistory[key] = [];
     fiHistoryIndex[key] = 0;
 }
@@ -121,7 +121,7 @@ function _arrayEquals(a, b) {
     }
 }
 
-flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
+flatstore.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
     return function (WrappedComponent) {
         return class extends React.Component {
             constructor(props) {
@@ -129,7 +129,7 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
 
                 this.watched = {};
                 this.onCustomWatched = null;
-                this._flatironid = fiIncrementIndex++;
+                this._flatstoreid = fiIncrementIndex++;
 
                 if (onCustomWatched instanceof Function)
                     this.onCustomWatched = onCustomWatched;
@@ -138,7 +138,7 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
             }
 
             componentWillUnmount() {
-                flatiron._unwatch(this.watched, this);
+                flatstore._unwatch(this.watched, this);
             }
 
             processWatched(isConstructor) {
@@ -146,13 +146,13 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
                     let previousWatchedKeys = watchedKeys;
                     watchedKeys = this.onCustomWatched({ ...this.props, ...this.state });
                     if (!_arrayEquals(previousWatchedKeys, watchedKeys)) {
-                        flatiron._unwatch(this.watched, this);
+                        flatstore._unwatch(this.watched, this);
                         this.watched = {};
                     }
                 }
 
                 if (!Array.isArray(watchedKeys))
-                    throw new Error("[flatiron.ProcessWatched] ERROR: parameter watchList '" + typeof watchedKeys + "' must return array of strings.");
+                    throw new Error("[flatstore.ProcessWatched] ERROR: parameter watchList '" + typeof watchedKeys + "' must return array of strings.");
 
                 let componentState = {};
 
@@ -160,10 +160,10 @@ flatiron.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
                     let key = watchedKeys[i];
 
                     if (!(key in this.watched)) {
-                        flatiron._watch(key, this);
+                        flatstore._watch(key, this);
                         this.watched[key] = true;
                         if (isConstructor) {
-                            let customState = this.onNotify(key, flatiron.copy(key), isConstructor);
+                            let customState = this.onNotify(key, flatstore.copy(key), isConstructor);
                             Object.assign(componentState, customState);
                         }
                     }
@@ -215,26 +215,26 @@ function _setChild(obj, path, value) {
     return path[0];
 }
 
-flatiron._setHistory = function (key, newValue) {
+flatstore._setHistory = function (key, newValue) {
     let oldValue = fiStore[key];
     let parent = _setChild(fiStore, key, newValue);
 
-    flatiron._notifyComponents(key, newValue);
-    flatiron._notifySubscribers(key, newValue);
-    flatiron._notifyChildren(parent);
+    flatstore._notifyComponents(key, newValue);
+    flatstore._notifySubscribers(key, newValue);
+    flatstore._notifyChildren(parent);
 }
 
-flatiron._notifyChildren = function(key) {
-    if( !Array.isArray(fiStore[key]) && !(fiStore[key] instanceof Object))
+flatstore._notifyChildren = function (key) {
+    if (!Array.isArray(fiStore[key]) && !(fiStore[key] instanceof Object))
         return;
-    for(var childKey in fiWatchersChildren[key]) {
-        let newValue = flatiron.get(childKey);
-        flatiron._notifyComponents(childKey, newValue);
-        flatiron._notifySubscribers(childKey, newValue);
+    for (var childKey in fiWatchersChildren[key]) {
+        let newValue = flatstore.get(childKey);
+        flatstore._notifyComponents(childKey, newValue);
+        flatstore._notifySubscribers(childKey, newValue);
     }
 }
 
-flatiron._notifyHistory = function (key, value) {
+flatstore._notifyHistory = function (key, value) {
     if (!(key in fiHistory))
         return;
 
@@ -250,13 +250,13 @@ flatiron._notifyHistory = function (key, value) {
         fiHistoryIndex[key] = index + 1;
     }
 }
-flatiron._notifyComponents = function (key, value) {
+flatstore._notifyComponents = function (key, value) {
     if (!(key in fiWatchers))
         return;
     for (let i in fiWatchers[key])
         fiWatchers[key][i].onNotify(key, value);
 }
-flatiron._notifySubscribers = function (key, value) {
+flatstore._notifySubscribers = function (key, value) {
     if (!fiSubscribers)
         return;
 
@@ -269,24 +269,24 @@ flatiron._notifySubscribers = function (key, value) {
 
 
 
-flatiron._watch = function (key, component) {
+flatstore._watch = function (key, component) {
     if (!fiWatchers[key])
         fiWatchers[key] = {};
-    fiWatchers[key][component._flatironid] = component;
+    fiWatchers[key][component._flatstoreid] = component;
     let delimiterPos = key.indexOf(delimiter);
-    if( delimiterPos > -1 ) {
-        let parentKey = key.substring(0,delimiterPos);
-        if( !fiWatchersChildren[parentKey] )
+    if (delimiterPos > -1) {
+        let parentKey = key.substring(0, delimiterPos);
+        if (!fiWatchersChildren[parentKey])
             fiWatchersChildren[parentKey] = {};
         fiWatchersChildren[parentKey][key] = true;
     }
 }
 
-flatiron._unwatch = function (watched, component) {
+flatstore._unwatch = function (watched, component) {
     for (let key in watched) {
-        delete fiWatchers[key][component._flatironid];
+        delete fiWatchers[key][component._flatstoreid];
     }
 
 }
 
-export default flatiron;
+export default flatstore;
