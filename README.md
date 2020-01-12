@@ -4,9 +4,7 @@ Redux alternative, Flat storage with tighter data to component mapping. Formally
 
 # Installation
 
-`git clone git@github.com:joetex/flatstore.git`
-
-Not yet released on npm, until the base functionality is working properly.
+`npm install flatstore --save`
 
 # Getting Started
 
@@ -14,7 +12,7 @@ flatstore is a global object, used with the concept of Services to call async or
 
 ## Simple
 
-[View example source](https://github.com/joetex/flatstore/tree/master/flatstore-examples/Simple)
+[View example source](https://github.com/joetex/flatstore-examples/tree/master/Simple)
 
 **flatstore.set** lets you add any data into the global store by key name from anywhere.
 
@@ -68,7 +66,7 @@ export default flatstore.connect(['ddgQuery', 'ddgResultCount', 'ddgError'])(Sea
 
 ## Advanced
 
-[View example source](https://github.com/joetex/flatstore/tree/master/flatstore-examples/Advanced)
+[View example source](https://github.com/joetex/flatstore-examples/tree/master/Advanced)
 
 **onCustomWatched** allows dynamic control on which items to watch (called only once during constructor).
 
