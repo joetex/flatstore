@@ -1,5 +1,5 @@
 import React from 'react';
-import cloneDeep from 'lodash/cloneDeep';
+// import cloneDeep from 'lodash/cloneDeep';
 
 var flatstore = {};  //main library
 var fiStore = {};   //global store
@@ -10,6 +10,10 @@ var fiSubscribers;  //global subscribers (outside components)
 var fiHistoryIndex = {}; //index of history
 var fiHistory = {}; //history list of copied states
 var delimiter = "-";
+
+cloneDeep = (obj) => {
+    return JSON.parse(JSON.stringify(obj));
+}
 
 flatstore.delimiter = function (d) {
     delimiter = d;
