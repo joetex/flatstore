@@ -14,7 +14,7 @@ var delimiter = "-";
 var cloneDeep = (obj) => {
     try {
         if (typeof obj === 'undefined')
-            return undefined;
+            return null;
         return JSON.parse(JSON.stringify(obj));
     }
     catch (e) {
