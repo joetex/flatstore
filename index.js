@@ -12,7 +12,13 @@ var fiHistory = {}; //history list of copied states
 var delimiter = "-";
 
 var cloneDeep = (obj) => {
-    return JSON.parse(JSON.stringify(obj));
+    try {
+        return JSON.parse(JSON.stringify(obj));
+    }
+    catch (e) {
+        console.error(e);
+        return null;
+    }
 }
 
 flatstore.delimiter = function (d) {
