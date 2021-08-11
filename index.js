@@ -11,7 +11,7 @@ var fiHistoryIndex = {}; //index of history
 var fiHistory = {}; //history list of copied states
 var delimiter = "-";
 
-cloneDeep = (obj) => {
+var cloneDeep = (obj) => {
     return JSON.parse(JSON.stringify(obj));
 }
 
