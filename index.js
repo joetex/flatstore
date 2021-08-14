@@ -32,7 +32,8 @@ flatstore.get = function (key) {
     try {
         value = _getChild(fiStore, key);
     } catch (error) {
-        throw new Error("[flatstore.get] ERROR: Key '" + key + "' not valid.");
+        console.warn("[flatstore.get] ERROR: Key '" + key + "' not valid.");
+        return null;
     }
 
     return value;
