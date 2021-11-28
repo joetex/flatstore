@@ -16,6 +16,7 @@ Differences from Redux:
 - Support for storing historical changes for any specific key
 - Supports object drilldown syntax, i.e. `state.player.name` where `.` is delimeter for next child object
 - Supports undo/redo (if used with historical)
+- Updates props everytime `flatstore.set` is called, letting react handle if re-render is needed.
 
 ## Simple
 
