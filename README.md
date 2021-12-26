@@ -1,6 +1,6 @@
 # flatstore
 
-Redux alternative, Flat storage with tighter data to component mapping. Formally known as flatiron.
+Redux alternative, Flat storage with tighter data to component mapping.
 
 # Installation
 
@@ -8,7 +8,15 @@ Redux alternative, Flat storage with tighter data to component mapping. Formally
 
 # Getting Started
 
-flatstore is a global object, used with the concept of Services to call async or regular functions and add or update data, and Data Watching, to subscribe to specific data changes.
+flatstore is a global key/value storage.  It connects to components using a higher-order component to re-render on data changes for any keys being watched.  
+
+Differences from Redux:
+- Data is mutable at the global level.
+- Simplified component connect for watching specific keys
+- Support for storing historical changes for any specific key
+- Supports object drilldown syntax, i.e. `state.player.name` where `.` is delimeter for next child object
+- Supports undo/redo (if used with historical)
+- Updates props everytime `flatstore.set` is called, letting react handle if re-render is needed.
 
 ## Simple
 
