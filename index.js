@@ -242,6 +242,8 @@ flatstore._notifyChildren = function (key) {
         return;
     for (var childKey in fiWatchersChildren[key]) {
         let newValue = flatstore.get(childKey);
+        if (typeof newValue === 'undefined')
+            return;
         flatstore._notifyComponents(childKey, newValue);
         flatstore._notifySubscribers(childKey, newValue);
     }
