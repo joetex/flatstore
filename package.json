@@ -1,6 +1,6 @@
 {
     "name": "flatstore",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "description": "Global store manager for components",
     "main": "index.js",
     "scripts": {
@@ -13,7 +13,7 @@
     "author": "",
     "license": "ISC",
     "peerDependencies": {
-        "react": "^16.x"
+        "react": "^16 || ^17"
     },
     "dependencies": {}
 }
