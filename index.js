@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 // import cloneDeep from 'lodash/cloneDeep';
 
 var flatstore = {};  //main library
@@ -7,6 +7,7 @@ var fiWatchers = {};    //component watchers
 var fiWatchersChildren = {}; //component watchers for drill down keys 
 var fiIncrementIndex = 0; //HOC indexing
 var fiSubscribers;  //global subscribers (outside components)
+var fiSubscriberCounter = 0; //index of subscribers, to allow unsubscribing
 var fiHistoryIndex = {}; //index of history
 var fiHistory = {}; //history list of copied states
 var delimiter = "-";
@@ -21,6 +22,37 @@ var cloneDeep = (obj) => {
         console.error(e);
         return null;
     }
+}
+
+const reducer = (oldValue, newValue) => {
+    return newValue;
+}
+
+flatstore.useWatch = function (key, defaultValue) {
+
+
+    const update = React.useReducer(reducer, defaultValue);
+    // const [id, setId] = useState(null);
+
+    const cb = (key, value) => {
+        update[1](value);
+    }
+
+    useEffect(() => {
+
+        let value = flatstore.get(key);
+        if (typeof value === 'undefined' && typeof defaultValue !== 'undefined') {
+            flatstore.set(key, defaultValue);
+        }
+
+        let id = flatstore.subscribe(key, cb)
+
+        return () => {
+            flatstore.unsubscribe(id, key);
+        }
+    }, [])
+
+    return update;
 }
 
 flatstore.delimiter = function (d) {
@@ -47,7 +79,8 @@ flatstore.copy = function (key) {
 flatstore.set = function (key, newValue) {
     let parent = key;
     try {
-        parent = _setChild(fiStore, key, newValue);
+        let path = _setChild(fiStore, key, newValue);
+        parent = path[0];
     } catch (error) {
         throw new Error("[flatstore.set] ERROR: Key '" + key + "' not valid.");
     }
@@ -70,7 +103,8 @@ flatstore.setWithObj = function (obj) {
         const newValue = obj[i]
         let parent = key;
         try {
-            parent = _setChild(fiStore, key, newValue);
+            let path = _setChild(fiStore, key, newValue);
+            parent = path[0];
         } catch (error) {
             throw new Error("[flatstore.set] ERROR: Key '" + key + "' not valid.");
         }
@@ -94,8 +128,25 @@ flatstore.subscribe = function (key, callback) {
         fiSubscribers = {};
 
     if (!fiSubscribers[key])
-        fiSubscribers[key] = [];
-    fiSubscribers[key].push(callback);
+        fiSubscribers[key] = {};
+
+    fiSubscribers[key]['s' + fiSubscriberCounter] = callback;
+    return fiSubscriberCounter++;
+}
+
+flatstore.unsubscribe = function (id, key) {
+
+    if (!fiSubscribers)
+        return false;
+
+    if (!(key in fiSubscribers))
+        return false;
+
+    if ((!id in fiSubscribers[key]))
+        return false;
+
+    delete fiSubscribers[key]['s' + id];
+    return true;
 }
 
 flatstore.undo = function (key) {
@@ -225,12 +276,13 @@ function _setChild(obj, path, value) {
         obj = obj[path[i]];
 
     obj[path[i]] = value;
-    return path[0];
+    return path;
 }
 
 flatstore._setHistory = function (key, newValue) {
     let oldValue = fiStore[key];
-    let parent = _setChild(fiStore, key, newValue);
+    let path = _setChild(fiStore, key, newValue);
+    let parent = path[0];
 
     flatstore._notifyComponents(key, newValue);
     flatstore._notifySubscribers(key, newValue);
