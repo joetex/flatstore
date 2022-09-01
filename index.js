@@ -24,35 +24,22 @@ var cloneDeep = (obj) => {
     }
 }
 
-const reducer = (oldValue, newValue) => {
-    return newValue;
-}
+const reduce = () => ({});
 
 flatstore.useWatch = function (key, defaultValue) {
-
-
-    const update = React.useReducer(reducer, defaultValue);
-    // const [id, setId] = useState(null);
-
-    const cb = (key, value) => {
-        update[1](value);
+    const update = React.useReducer(reduce, {})[1];
+    const cb = () => {
+        update();
     }
 
     useEffect(() => {
-
-        let value = flatstore.get(key);
-        if (typeof value === 'undefined' && typeof defaultValue !== 'undefined') {
-            flatstore.set(key, defaultValue);
-        }
-
         let id = flatstore.subscribe(key, cb)
-
         return () => {
             flatstore.unsubscribe(id, key);
         }
     }, [])
 
-    return [update[0], Date.now()];
+    return [flatstore.get(key)];
 }
 
 flatstore.delimiter = function (d) {
