@@ -25,7 +25,7 @@ var cloneDeep = (obj) => {
 }
 
 const reducer = (oldValue, newValue) => {
-    return newValue[0];
+    return newValue;
 }
 
 flatstore.useWatch = function (key, defaultValue) {
@@ -35,7 +35,7 @@ flatstore.useWatch = function (key, defaultValue) {
     // const [id, setId] = useState(null);
 
     const cb = (key, value) => {
-        update[1]([value]);
+        update[1](value);
     }
 
     useEffect(() => {
@@ -52,7 +52,7 @@ flatstore.useWatch = function (key, defaultValue) {
         }
     }, [])
 
-    return update;
+    return [update[0], Date.now()];
 }
 
 flatstore.delimiter = function (d) {
