@@ -18,13 +18,116 @@ Differences from Redux:
 - Supports undo/redo (if used with historical)
 - Updates props everytime `flatstore.set` is called, letting react handle if re-render is needed.
 
-## Simple
+---
+
+## Hooks
+
+### `flatstore.useWatch(key)`
+
+Watch for changes against the specified key.  This will be updated whenever someone uses `flatstore.set(key)`
+
+#### Usage
+
+```js
+let [player] = flatstore.useWatch('player');
+```
+
+##### Parameters
+
+- `key` (string) - the key that you want to watch for changes
+
+---
+
+## Methods
+
+### `flatstore.set(key, value)` 
+
+Set a value to a key in the global storage
+
+#####  Parameters
+
+- `key` (string) - the key that you want to update
+- `value` (any) - the value that you want to store at the specified key
+
+---
+
+### `flatstore.get(key)`
+
+Get a value from the global storage.  It is mutable.
+
+##### Parameters
+
+- `key` (string) - the key to retrieve the value
+
+##### Returns
+
+`value` (any) - value that is stored at the specified key
+
+---
+
+### `flatstore.delimiter(delim)` 
+
+Sets the delimiter for string traversal of object or array.
+
+##### Parameters
+
+- `delim` (character) - a single character that will be delimit the keys for object traversal
+
+##### Example
+
+```js
+flatstore.delimiter('|');
+let family = { parent: { child: { money: 10 } } }
+flatstore.set('test', family );
+let money = flatstore.get('test|parent|child|money');
+```
+
+---
+
+
+### `flatstore.copy(key)`
+
+Copy the value, so it is immutable.  
+
+##### Parameters
+
+- `key` (string) - the key to retrieve the value
+
+##### Returns
+
+`value` (any) - value that is stored at the specified key
+
+---
+
+
+### `flatstore.subscribe(key, callback)` 
+
+Subscribe to a key that will trigger the callback function when someone uses `flatstore.set(key,value)`
+
+#####  Parameters
+
+- `key` (string) - the key that you want to update
+- `callback` (function) - Function that is called when the value at `key` changes.  
+
+##### Example
+
+```js
+flatstore.subscribe('test', (key, value) => { 
+    console.log('test was updated: ', value) 
+}
+
+flatstore.set('test', 'hello!');
+```
+
+---
+
+## Simple Example
 
 [View example source](https://github.com/joetex/flatstore-examples/tree/master/Simple)
 
 **flatstore.set** lets you add any data into the global store by key name from anywhere.
 
-**flatstore.connect** lets you specify an array of keys in string format to update component when those keys changed.
+**flatstore.useWatch** lets you specify a key to watch for changes.
 
 ```javascript
 //Run a query against DuckDuckGo API
@@ -52,27 +155,30 @@ export async function SearchDuckDuckGo(query) {
 import React from 'react';
 import flatstore from 'flatstore';
 
-class SearchStatus extends React.Component {
-    render() {
-        if (this.props.ddgError) return <div style={{ color: '#f00' }}>{this.props.ddgError.message}</div>;
+function SearchStatus(props) {
 
-        if (!this.props.ddgResultCount || !this.props.ddgQuery) return <div></div>;
+    let [ddgQuery] = flatstore.useWatch('ddgQuery');
+    let [ddgResultCount] = flatstore.useWatch('ddgResultCount');
+    let [ddgError] = flatstore.useWatch('ddgError');
+    
+    if (ddgError) return <div style={{ color: '#f00' }}>{ddgError.message}</div>;
 
-        return (
-            <div>
-                <i>
-                    Searched {this.props.ddgQuery}
-                    with {this.props.ddgResultCount || 0} results.
-                </i>
-            </div>
-        );
-    }
+    if (!ddgResultCount || !ddgQuery) return <div></div>;
+
+    return (
+        <div>
+            <i>
+                Searched {ddgQuery}
+                with {ddgResultCount || 0} results.
+            </i>
+        </div>
+    );
 }
 
-export default flatstore.connect(['ddgQuery', 'ddgResultCount', 'ddgError'])(SearchStatus);
+export default SearchStatus;
 ```
 
-## Advanced
+## Advanced Example (legacy class components)
 
 [View example source](https://github.com/joetex/flatstore-examples/tree/master/Advanced)
 
