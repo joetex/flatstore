@@ -24,12 +24,19 @@ Differences from Redux:
 
 ### `flatstore.useWatch(key)`
 
-Watch for changes against the specified key.  This will be updated whenever someone uses `flatstore.set(key)`
+Watch for changes against the specified key.  This will update the functional component whenever someone uses `flatstore.set(key)`
 
-#### Usage
+#### Example Usage
 
 ```js
-let [player] = flatstore.useWatch('player');
+function onChange() {
+    flatstore.set('player', 'Joe');
+}
+
+function DisplayPlayer(props) {
+    let [player] = flatstore.useWatch('player');
+    return <span>{player}</span>
+}
 ```
 
 ##### Parameters
@@ -42,7 +49,7 @@ let [player] = flatstore.useWatch('player');
 
 ### `flatstore.set(key, value)` 
 
-Set a value to a key in the global storage
+Set a value to a key in the global storage.  If any component is using `useWatch`, the component will rerender.  Or, if subscribed to a key, the callback will be called.
 
 #####  Parameters
 
@@ -53,7 +60,7 @@ Set a value to a key in the global storage
 
 ### `flatstore.get(key)`
 
-Get a value from the global storage.  It is mutable.
+Get a value from the global storage.  It is mutable.  
 
 ##### Parameters
 
