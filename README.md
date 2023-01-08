@@ -8,7 +8,7 @@ Redux alternative, Flat storage with tighter data to component mapping.
 
 # Getting Started
 
-flatstore is a global key/value storage. It connects to components using hooks for functional components and a higher-order component for class copmonents to re-render on data changes for any keys being watched.
+flatstore is a global key/value storage. It connects to components using hooks for functional components and a higher-order component for class components to re-render on data changes for any keys being watched.
 
 Differences from Redux:
 

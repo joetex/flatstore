@@ -1,6 +1,6 @@
 {
   "name": "flatstore",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Global store manager for components",
   "main": "index.js",
   "scripts": {
