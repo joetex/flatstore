@@ -8,9 +8,10 @@ Redux alternative, Flat storage with tighter data to component mapping.
 
 # Getting Started
 
-flatstore is a global key/value storage.  It connects to components using a higher-order component to re-render on data changes for any keys being watched.  
+flatstore is a global key/value storage. It connects to components using hooks for functional components and a higher-order component for class copmonents to re-render on data changes for any keys being watched.
 
 Differences from Redux:
+
 - Data is mutable at the global level.
 - Simplified component connect for watching specific keys
 - Support for storing historical changes for any specific key
@@ -24,18 +25,18 @@ Differences from Redux:
 
 ### `flatstore.useWatch(key)`
 
-Watch for changes against the specified key.  This will update the functional component whenever someone uses `flatstore.set(key)`
+Watch for changes against the specified key. This will update the functional component whenever someone uses `flatstore.set(key)`
 
 #### Example Usage
 
 ```js
 function onChange() {
-    flatstore.set('player', 'Joe');
+  flatstore.set("player", "Joe");
 }
 
 function DisplayPlayer(props) {
-    let [player] = flatstore.useWatch('player');
-    return <span>{player}</span>
+  let [player] = flatstore.useWatch("player");
+  return <span>{player}</span>;
 }
 ```
 
@@ -47,11 +48,11 @@ function DisplayPlayer(props) {
 
 ## Methods
 
-### `flatstore.set(key, value)` 
+### `flatstore.set(key, value)`
 
-Set a value to a key in the global storage.  If any component is using `useWatch`, the component will rerender.  Or, if subscribed to a key, the callback will be called.
+Set a value to a key in the global storage. If any component is using `useWatch`, the component will rerender. Or, if subscribed to a key, the callback will be called.
 
-#####  Parameters
+##### Parameters
 
 - `key` (string) - the key that you want to update
 - `value` (any) - the value that you want to store at the specified key
@@ -60,7 +61,7 @@ Set a value to a key in the global storage.  If any component is using `useWatch
 
 ### `flatstore.get(key)`
 
-Get a value from the global storage.  It is mutable.  
+Get a value from the global storage. It is mutable.
 
 ##### Parameters
 
@@ -72,7 +73,7 @@ Get a value from the global storage.  It is mutable.
 
 ---
 
-### `flatstore.delimiter(delim)` 
+### `flatstore.delimiter(delim)`
 
 Sets the delimiter for string traversal of object or array.
 
@@ -83,18 +84,17 @@ Sets the delimiter for string traversal of object or array.
 ##### Example
 
 ```js
-flatstore.delimiter('|');
-let family = { parent: { child: { money: 10 } } }
-flatstore.set('test', family );
-let money = flatstore.get('test|parent|child|money');
+flatstore.delimiter("|");
+let family = { parent: { child: { money: 10 } } };
+flatstore.set("test", family);
+let money = flatstore.get("test|parent|child|money");
 ```
 
 ---
 
-
 ### `flatstore.copy(key)`
 
-Copy the value, so it is immutable.  
+Copy the value, so it is immutable.
 
 ##### Parameters
 
@@ -106,21 +106,20 @@ Copy the value, so it is immutable.
 
 ---
 
-
-### `flatstore.subscribe(key, callback)` 
+### `flatstore.subscribe(key, callback)`
 
 Subscribe to a key that will trigger the callback function when someone uses `flatstore.set(key,value)`
 
-#####  Parameters
+##### Parameters
 
 - `key` (string) - the key that you want to update
-- `callback` (function) - Function that is called when the value at `key` changes.  
+- `callback` (function) - Function that is called when the value at `key` changes.
 
 ##### Example
 
 ```js
-flatstore.subscribe('test', (key, value) => { 
-    console.log('test was updated: ', value) 
+flatstore.subscribe('test', (key, value) => {
+    console.log('test was updated: ', value)
 }
 
 flatstore.set('test', 'hello!');
@@ -139,47 +138,47 @@ flatstore.set('test', 'hello!');
 ```javascript
 //Run a query against DuckDuckGo API
 export async function SearchDuckDuckGo(query) {
-    let url = 'https://api.duckduckgo.com/?t=flatstoreExample&format=json&q=' + query;
-    try {
-        let response = await axios.get(url);
-        let results = ReduceResults(response); //grabs only the results
+  let url =
+    "https://api.duckduckgo.com/?t=flatstoreExample&format=json&q=" + query;
+  try {
+    let response = await axios.get(url);
+    let results = ReduceResults(response); //grabs only the results
 
-        flatstore.set('ddg', response.data);
-        flatstore.set('ddgQuery', query);
-        flatstore.set('ddgResults', results);
-        flatstore.set('ddgResultCount', results.length);
-        flatstore.set('ddgError', false);
-    } catch (error) {
-        console.log(error);
-        flatstore.set('ddgError', error);
-    }
+    flatstore.set("ddg", response.data);
+    flatstore.set("ddgQuery", query);
+    flatstore.set("ddgResults", results);
+    flatstore.set("ddgResultCount", results.length);
+    flatstore.set("ddgError", false);
+  } catch (error) {
+    console.log(error);
+    flatstore.set("ddgError", error);
+  }
 }
 
 //...
 
 //Show the search status
 
-import React from 'react';
-import flatstore from 'flatstore';
+import React from "react";
+import flatstore from "flatstore";
 
 function SearchStatus(props) {
+  let [ddgQuery] = flatstore.useWatch("ddgQuery");
+  let [ddgResultCount] = flatstore.useWatch("ddgResultCount");
+  let [ddgError] = flatstore.useWatch("ddgError");
 
-    let [ddgQuery] = flatstore.useWatch('ddgQuery');
-    let [ddgResultCount] = flatstore.useWatch('ddgResultCount');
-    let [ddgError] = flatstore.useWatch('ddgError');
-    
-    if (ddgError) return <div style={{ color: '#f00' }}>{ddgError.message}</div>;
+  if (ddgError) return <div style={{ color: "#f00" }}>{ddgError.message}</div>;
 
-    if (!ddgResultCount || !ddgQuery) return <div></div>;
+  if (!ddgResultCount || !ddgQuery) return <div></div>;
 
-    return (
-        <div>
-            <i>
-                Searched {ddgQuery}
-                with {ddgResultCount || 0} results.
-            </i>
-        </div>
-    );
+  return (
+    <div>
+      <i>
+        Searched {ddgQuery}
+        with {ddgResultCount || 0} results.
+      </i>
+    </div>
+  );
 }
 
 export default SearchStatus;
@@ -199,39 +198,43 @@ export default SearchStatus;
 
 ```javascript
 export function todoToggleComplete(id) {
-    let todos = flatstore.get('todos');
-    let todo = todos[id];
-    if (!todo) return;
+  let todos = flatstore.get("todos");
+  let todo = todos[id];
+  if (!todo) return;
 
-    todo.completed = !todo.completed;
-    flatstore.set('todos-' + id, todo);
+  todo.completed = !todo.completed;
+  flatstore.set("todos-" + id, todo);
 }
 
 //...
 
 class TodoResult extends React.Component {
-    render() {
-        return (
-            <div
-                className={this.props.completed ? 'completed' : ''}
-                onClick={() => {
-                    todoToggleComplete(this.props.id);
-                }}
-            >
-                <span className="result-title">{this.props.desc}</span> -
-                <span className="result-date">{this.props.dateCreated}</span>
-            </div>
-        );
-    }
+  render() {
+    return (
+      <div
+        className={this.props.completed ? "completed" : ""}
+        onClick={() => {
+          todoToggleComplete(this.props.id);
+        }}
+      >
+        <span className="result-title">{this.props.desc}</span> -
+        <span className="result-date">{this.props.dateCreated}</span>
+      </div>
+    );
+  }
 }
 
-let onCustomWatched = ownProps => {
-    return ['todos-' + ownProps.id];
+let onCustomWatched = (ownProps) => {
+  return ["todos-" + ownProps.id];
 };
 let onCustomProps = (key, value, store, ownProps) => {
-    return {
-        ...value
-    };
+  return {
+    ...value,
+  };
 };
-export default flatstore.connect([], onCustomWatched, onCustomProps)(TodoResult);
+export default flatstore.connect(
+  [],
+  onCustomWatched,
+  onCustomProps
+)(TodoResult);
 ```

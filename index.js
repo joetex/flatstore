@@ -39,7 +39,11 @@ flatstore.useWatch = function (key, defaultValue) {
         }
     }, [])
 
-    return [flatstore.get(key)];
+    let value = flatstore.get(key);
+    if (typeof value === 'undefined')
+        value = defaultValue;
+
+    return [value];
 }
 
 flatstore.delimiter = function (d) {
