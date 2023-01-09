@@ -27,6 +27,8 @@ var cloneDeep = (obj) => {
 
 
 flatstore.useWatch = function (key, defaultValue) {
+    if (typeof defaultValue === 'undefined')
+        defaultValue = flatstore.get(key);
     const [state, update] = useReducer(() => flatstore.get(key), defaultValue);
     useEffect(() => {
         let id = flatstore.subscribe(key, () => {
@@ -41,6 +43,8 @@ flatstore.useWatch = function (key, defaultValue) {
 }
 
 flatstore.useChange = function (key, defaultValue) {
+    if (typeof defaultValue === 'undefined')
+        defaultValue = flatstore.get(key);
     const [state, update] = useReducer(() => flatstore.get(key), defaultValue);
     useEffect(() => {
         let id = flatstore.subscribe(key, () => {
