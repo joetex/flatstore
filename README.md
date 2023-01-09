@@ -23,9 +23,9 @@ Differences from Redux:
 
 ## Hooks
 
-### `flatstore.useWatch(key)`
+### `flatstore.useWatch(key, defaultValue)`
 
-Watch for changes against the specified key. This will update the functional component whenever someone uses `flatstore.set(key)`
+Trigger a re-render against the specified key whenever someone calls `flatstore.set(key)`. Note: Default value does update the storage and is only used when no value exists in the storage for the key.
 
 #### Example Usage
 
@@ -42,7 +42,32 @@ function DisplayPlayer(props) {
 
 ##### Parameters
 
+- `key` (string) - the key that you want to watch when `set` is called against the key.
+- `defaultValue` (any) - the value to use if key has no value yet. Note: this will not call `set`.
+
+---
+
+### `flatstore.useChange(key, defaultValue)`
+
+Trigger a re-render against the specified key whenever someone uses `flatstore.set(key)` AND the value actually changes. It uses `===` to determine change between previous and current values. Note: Default value does update the storage and is only used when no value exists in the storage for the key.
+
+#### Example Usage
+
+```js
+function onChange() {
+  flatstore.set("player", "Joe");
+}
+
+function DisplayPlayer(props) {
+  let [player] = flatstore.useChange("player");
+  return <span>{player}</span>;
+}
+```
+
+##### Parameters
+
 - `key` (string) - the key that you want to watch for changes
+- `defaultValue` (any) - the value to use if key has no value yet. Note: this will not call `set`.
 
 ---
 

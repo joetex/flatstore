@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useEffect, useReducer, Component, createElement } from 'react';
 // import cloneDeep from 'lodash/cloneDeep';
 
 var flatstore = {};  //main library
 var fiStore = {};   //global store
+var fiStorePrev = {}; //global store previous values
 var fiWatchers = {};    //component watchers
 var fiWatchersChildren = {}; //component watchers for drill down keys 
 var fiIncrementIndex = 0; //HOC indexing
@@ -24,26 +25,38 @@ var cloneDeep = (obj) => {
     }
 }
 
-const reduce = () => ({});
 
 flatstore.useWatch = function (key, defaultValue) {
-    const update = React.useReducer(reduce, {})[1];
-    const cb = () => {
-        update();
-    }
-
+    const [state, update] = useReducer(() => flatstore.get(key), defaultValue);
     useEffect(() => {
-        let id = flatstore.subscribe(key, cb)
+        let id = flatstore.subscribe(key, () => {
+            update();
+        })
         return () => {
             flatstore.unsubscribe(id, key);
         }
     }, [])
 
-    let value = flatstore.get(key);
-    if (typeof value === 'undefined')
-        value = defaultValue;
+    return [state];
+}
 
-    return [value];
+flatstore.useChange = function (key, defaultValue) {
+    const [state, update] = useReducer(() => flatstore.get(key), defaultValue);
+    useEffect(() => {
+        let id = flatstore.subscribe(key, () => {
+            let value = flatstore.get(key);
+            let prev = flatstore.getPrev(key);
+            if (value === prev) {
+                return;
+            }
+            update();
+        })
+        return () => {
+            flatstore.unsubscribe(id, key);
+        }
+    }, [])
+
+    return [state];
 }
 
 flatstore.delimiter = function (d) {
@@ -58,7 +71,17 @@ flatstore.get = function (key) {
         //console.warn("[flatstore.get] ERROR: Key '" + key + "' not valid.");
         return null;
     }
+    return value;
+}
 
+flatstore.getPrev = function (key) {
+    let value;
+    try {
+        value = _getChild(fiStorePrev, key);
+    } catch (error) {
+        //console.warn("[flatstore.get] ERROR: Key '" + key + "' not valid.");
+        return null;
+    }
     return value;
 }
 
@@ -112,6 +135,7 @@ flatstore.setWithObj = function (obj) {
         }
     }
 }
+
 flatstore.subscribe = function (key, callback) {
     if (!(callback instanceof Function))
         throw new Error("[flatstore.subscribe] ERROR: callback must be a function.");
@@ -178,7 +202,7 @@ function _arrayEquals(a, b) {
 
 flatstore.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
     return function (WrappedComponent) {
-        return class extends React.Component {
+        return class extends Component {
             constructor(props) {
                 super(props);
 
@@ -245,7 +269,7 @@ flatstore.connect = function (watchedKeys, onCustomWatched, onCustomProps) {
             }
 
             render() {
-                return React.createElement(WrappedComponent, { ...this.state, ...this.props }, this.props.children);
+                return createElement(WrappedComponent, { ...this.state, ...this.props }, this.props.children);
             }
         };
     }
@@ -266,7 +290,11 @@ function _setChild(obj, path, value) {
     for (i = 0; i < path.length - 1; i++)
         obj = obj[path[i]];
 
+    if (typeof obj[path[i]] !== 'undefined') {
+        fiStorePrev[path[i]] = obj[path[i]];
+    }
     obj[path[i]] = value;
+
     return path;
 }
 
